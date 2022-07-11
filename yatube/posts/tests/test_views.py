@@ -23,7 +23,7 @@ URL_TO_CREATE_POST = reverse('posts:post_create')
 URL_OF_PROFILE = reverse('posts:profile', args=[USERNAME])
 URL_OF_INDEX_FOLLOW = reverse('posts:follow_index')
 URL_OF_FOLLOW = reverse('posts:profile_follow', args=[USERNAME_2])
-URL_OF_UNFOLLOW = reverse('posts:profile_unfollow', args=[USERNAME_2])
+URL_OF_UNFOLLOW = reverse('posts:profile_unfollow', args=[USERNAME])
 small_gif = (
     b'\x47\x49\x46\x38\x39\x61\x02\x00'
     b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -173,19 +173,23 @@ class PostPagesTests(TestCase):
         response_3 = self.guest_client.get(URL_OF_INDEX)
         self.assertNotEqual(response.content, response_3.content)
 
-    def test_following_and_unfollowing(self):
-        self.assertEqual(
-            Follow.objects.filter(user=self.user)[0].user,
-            self.user
-        )
-        self.assertEqual(
-            Follow.objects.filter(author=self.user_2)[0].author,
-            self.user_2
-        )
-        self.assertFalse(
+    def test_profile_follow(self):
+        Follow.objects.all().delete()
+        self.authorized_client.get(URL_OF_FOLLOW)
+        self.assertTrue(
             Follow.objects.filter(
                 user=self.user,
-                author=self.user_2).exists()
+                author=self.user_2
+            ).exists()
+        )
+
+    def test_profile_unfollow(self):
+        self.another.get(URL_OF_UNFOLLOW)
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user_2,
+                author=self.user
+            ).exists()
         )
 
     def test_new_post_after_following(self):
@@ -197,7 +201,7 @@ class PostPagesTests(TestCase):
         response = self.another.get(URL_OF_INDEX_FOLLOW)
         response_2 = self.another_2.get(URL_OF_INDEX_FOLLOW)
         self.assertIn(new_post, response.context['page_obj'])
-        self.assertNotIn(new_post, response_2.context['posts_of_authors'])
+        self.assertNotIn(new_post, response_2.context['page_obj'])
 
 
 class PaginatorViewsTest(TestCase):
