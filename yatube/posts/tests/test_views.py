@@ -75,7 +75,10 @@ class PostPagesTests(TestCase):
             user=cls.user_2,
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
-        cls.URL_TO_CREATE_COMMENT = reverse('posts:add_comment', args=[cls.post.pk])
+        cls.URL_TO_CREATE_COMMENT = reverse(
+            'posts:add_comment',
+            args=[cls.post.pk]
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -171,11 +174,18 @@ class PostPagesTests(TestCase):
         self.assertNotEqual(response.content, response_3.content)
 
     def test_following_and_unfollowing(self):
-        response = self.authorized_client.get(URL_OF_FOLLOW)
-        self.assertEqual(Follow.objects.filter(user=self.user)[0].user, self.user)
-        self.assertEqual(Follow.objects.filter(author=self.user_2)[0].author, self.user_2)
-        response_2 = self.authorized_client.get(URL_OF_UNFOLLOW)
-        self.assertFalse(Follow.objects.filter(user=self.user, author=self.user_2).exists())
+        self.assertEqual(
+            Follow.objects.filter(user=self.user)[0].user,
+            self.user
+        )
+        self.assertEqual(
+            Follow.objects.filter(author=self.user_2)[0].author,
+            self.user_2
+        )
+        self.assertFalse(Follow.objects.filter(
+            user=self.user,
+            author=self.user_2).exists()
+                         )
 
     def test_new_post_after_following(self):
         new_post = Post.objects.create(

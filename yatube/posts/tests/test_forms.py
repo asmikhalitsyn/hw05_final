@@ -137,6 +137,3 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(new_post.group.id, form_data['group'])
         self.assertEqual(new_post.image, form_data['image'].content_type)
         self.assertEqual(new_post.author, self.user)
-
-
-

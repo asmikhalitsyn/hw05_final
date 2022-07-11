@@ -54,7 +54,7 @@ class PostURLTests(TestCase):
             [URL_OF_POSTS_OF_GROUP, self.guest, 'posts/group_list.html'],
             [URL_OF_PROFILE, self.guest, 'posts/profile.html'],
             [self.URL_OF_DETAIL_POST, self.guest, 'posts/post_detail.html'],
-           # [URL_OF_404_PAGE, self.guest, 'core/404.html'],
+            [URL_OF_404_PAGE, self.guest, 'core/404.html'],
             [self.URL_TO_EDIT_POST, self.another, 'posts/create_post.html'],
             [URL_TO_CREATE_POST, self.another, 'posts/create_post.html'],
 
