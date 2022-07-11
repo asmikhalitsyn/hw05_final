@@ -112,7 +112,7 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    user = request.user
+    user = str(request.user)
     author = get_object_or_404(User, username=username)
     follow = Follow.objects.filter(user=user, author=author)
     if user != author and follow.count() == 0:
@@ -123,6 +123,6 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     get_object_or_404(Follow,
-                      user=request.user,
+                      user=str(request.user),
                       author__username=username).delete()
     return redirect('posts:profile', username=username)
