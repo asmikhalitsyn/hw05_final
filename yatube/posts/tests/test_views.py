@@ -182,10 +182,11 @@ class PostPagesTests(TestCase):
             Follow.objects.filter(author=self.user_2)[0].author,
             self.user_2
         )
-        self.assertFalse(Follow.objects.filter(
-            user=self.user,
-            author=self.user_2).exists()
-                         )
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user,
+                author=self.user_2).exists()
+        )
 
     def test_new_post_after_following(self):
         new_post = Post.objects.create(
