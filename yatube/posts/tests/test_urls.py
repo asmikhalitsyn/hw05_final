@@ -79,7 +79,7 @@ class PostURLTests(TestCase):
             [self.URL_TO_EDIT_POST, self.guest, 302],
             [URL_TO_CREATE_POST, self.guest, 302],
             [self.URL_TO_EDIT_POST, self.another_2, 302],
-            [self.URL_TO_ADD_COMMENT, self.another_2, 302],
+            [self.URL_ADD_COMMENT, self.another_2, 302],
             [URL_OF_FOLLOW_INDEX, self.another, 200],
             [URL_TO_FOLLOW, self.another_2, 302],
         ]
@@ -92,8 +92,8 @@ class PostURLTests(TestCase):
             [URL_TO_CREATE_POST, self.guest, LOGIN_URL_CREATE],
             [self.URL_TO_EDIT_POST, self.guest, self.LOGIN_URL_EDIT],
             [self.URL_TO_EDIT_POST, self.another_2, self.URL_OF_DETAIL_POST],
-            [self.URL_TO_ADD_COMMENT, self.guest, self.LOGIN_URL_ADD_COMMENT],
-            [self.URL_TO_ADD_COMMENT, self.another, self.URL_OF_DETAIL_POST],
+            [self.URL_ADD_COMMENT, self.guest, self.LOGIN_ADD_COMMENT],
+            [self.URL_ADD_COMMENT, self.another, self.URL_OF_DETAIL_POST],
             [URL_TO_FOLLOW, self.another_2, URL_OF_PROFILE],
             [URL_TO_UNFOLLOW, self.another_2, URL_OF_PROFILE]
         ]
