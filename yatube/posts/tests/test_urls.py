@@ -41,11 +41,11 @@ class PostURLTests(TestCase):
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
         cls.LOGIN_URL_EDIT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_EDIT_POST}'
-        cls.URL_TO_ADD_COMMENT = reverse(
+        cls.URL_ADD_COMMENT = reverse(
             'posts:add_comment',
             args=[cls.post.pk]
         )
-        cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
+        cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_ADD_COMMENT}'
         cls.guest = Client()
         cls.another = Client()
         cls.another_2 = Client()
