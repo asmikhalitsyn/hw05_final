@@ -151,4 +151,3 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(new_comment.text, form_data['text'])
         self.assertEqual(new_comment.author, self.user)
         self.assertEqual(new_comment.post.pk, self.post.pk)
-

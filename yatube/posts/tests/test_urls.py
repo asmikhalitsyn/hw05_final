@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.cache import cache
 
-from ..models import Post, Group, User, Comment
+from ..models import Post, Group, User
 
 SLUG_OF_GROUP = 'test-slug'
 USERNAME = 'TEST'
@@ -45,7 +45,7 @@ class PostURLTests(TestCase):
             'posts:add_comment',
             args=[cls.post.pk]
         )
-        cls.LOGIN_URL_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
+        cls.LOGIN_TO_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
         cls.guest = Client()
         cls.another = Client()
         cls.another_2 = Client()

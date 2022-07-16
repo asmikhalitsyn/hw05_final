@@ -19,7 +19,9 @@ class Group(models.Model):
 
 class Post(models.Model):
     text = models.TextField(verbose_name='Текст поста')
-    pub_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата публкации')
+    pub_date = models.DateTimeField(
+        auto_now_add=True, verbose_name='Дата публкации'
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -65,7 +67,9 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Автор комментария'
     )
-    created = models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации')
+    created = models.DateTimeField(
+        auto_now_add=True, verbose_name='Дата публикации'
+    )
 
     class Meta:
         verbose_name = 'Комментарий'
