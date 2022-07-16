@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.cache import cache
 
-from ..models import Post, Group, User
+from ..models import Post, Group, User, Comment
 
 SLUG_OF_GROUP = 'test-slug'
 USERNAME = 'TEST'
@@ -13,6 +13,9 @@ URL_TO_CREATE_POST = reverse('posts:post_create')
 URL_OF_PROFILE = reverse('posts:profile', args=[USERNAME])
 URL_OF_404_PAGE = '/unexisting_page/'
 URL_NEXT = '?next='
+URL_OF_FOLLOW_INDEX = reverse('posts:follow_index')
+URL_TO_FOLLOW = reverse('posts:profile_follow', args=[USERNAME])
+URL_TO_UNFOLLOW = reverse('posts:profile_unfollow', args=[USERNAME])
 LOGIN_URL = reverse('login')
 LOGIN_URL_CREATE = f'{LOGIN_URL}{URL_NEXT}{URL_TO_CREATE_POST}'
 
@@ -38,14 +41,19 @@ class PostURLTests(TestCase):
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
         cls.LOGIN_URL_EDIT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_EDIT_POST}'
+        cls.URL_TO_ADD_COMMENT = reverse(
+            'posts:add_comment',
+            args=[cls.post.pk]
+        )
+        cls.LOGIN_URL_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
+        cls.guest = Client()
+        cls.another = Client()
+        cls.another_2 = Client()
+        cls.another_2.force_login(cls.user_2)
+        cls.another.force_login(cls.user)
 
     def setUp(self):
         cache.clear()
-        self.guest = Client()
-        self.another = Client()
-        self.another_2 = Client()
-        self.another_2.force_login(self.user_2)
-        self.another.force_login(self.user)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -54,10 +62,9 @@ class PostURLTests(TestCase):
             [URL_OF_POSTS_OF_GROUP, self.guest, 'posts/group_list.html'],
             [URL_OF_PROFILE, self.guest, 'posts/profile.html'],
             [self.URL_OF_DETAIL_POST, self.guest, 'posts/post_detail.html'],
-            [URL_OF_404_PAGE, self.guest, 'core/404.html'],
             [self.URL_TO_EDIT_POST, self.another, 'posts/create_post.html'],
             [URL_TO_CREATE_POST, self.another, 'posts/create_post.html'],
-
+            [URL_OF_FOLLOW_INDEX, self.another, 'posts/follow.html'],
         ]
         for url, client, template in cases:
             with self.subTest(url=url):
@@ -69,10 +76,12 @@ class PostURLTests(TestCase):
             [URL_OF_POSTS_OF_GROUP, self.guest, 200],
             [URL_OF_PROFILE, self.guest, 200],
             [self.URL_OF_DETAIL_POST, self.guest, 200],
-            [URL_OF_404_PAGE, self.guest, 404],
             [self.URL_TO_EDIT_POST, self.guest, 302],
             [URL_TO_CREATE_POST, self.guest, 302],
-            [self.URL_TO_EDIT_POST, self.another_2, 302]
+            [self.URL_TO_EDIT_POST, self.another_2, 302],
+            [self.URL_TO_ADD_COMMENT, self.another_2, 302],
+            [URL_OF_FOLLOW_INDEX, self.another, 200],
+            [URL_TO_FOLLOW, self.another_2, 302],
         ]
         for url, client, status in cases:
             with self.subTest(case=[url, client, status]):
@@ -83,6 +92,10 @@ class PostURLTests(TestCase):
             [URL_TO_CREATE_POST, self.guest, LOGIN_URL_CREATE],
             [self.URL_TO_EDIT_POST, self.guest, self.LOGIN_URL_EDIT],
             [self.URL_TO_EDIT_POST, self.another_2, self.URL_OF_DETAIL_POST],
+            [self.URL_TO_ADD_COMMENT, self.guest, self.LOGIN_URL_ADD_COMMENT],
+            [self.URL_TO_ADD_COMMENT, self.another, self.URL_OF_DETAIL_POST],
+            [URL_TO_FOLLOW, self.another_2, URL_OF_PROFILE],
+            [URL_TO_UNFOLLOW, self.another_2, URL_OF_PROFILE]
         ]
         for url, client, url_redirect in cases:
             with self.subTest(url_redirect=url_redirect):

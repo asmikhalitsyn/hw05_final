@@ -24,7 +24,7 @@ URL_OF_PROFILE = reverse('posts:profile', args=[USERNAME])
 URL_OF_INDEX_FOLLOW = reverse('posts:follow_index')
 URL_OF_FOLLOW = reverse('posts:profile_follow', args=[USERNAME_2])
 URL_OF_UNFOLLOW = reverse('posts:profile_unfollow', args=[USERNAME])
-small_gif = (
+SMALL_GIF = (
     b'\x47\x49\x46\x38\x39\x61\x02\x00'
     b'\x01\x00\x80\x00\x00\x00\x00\x00'
     b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
@@ -41,7 +41,7 @@ class PostPagesTests(TestCase):
         super().setUpClass()
         cls.uploaded = SimpleUploadedFile(
             name='small.gif',
-            content=small_gif,
+            content=SMALL_GIF,
             content_type='image/gif'
         )
         cls.user = User.objects.create_user(username=USERNAME)
@@ -75,10 +75,13 @@ class PostPagesTests(TestCase):
             user=cls.user_2,
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
-        cls.URL_TO_CREATE_COMMENT = reverse(
-            'posts:add_comment',
-            args=[cls.post.pk]
-        )
+        cls.guest_client = Client()
+        cls.authorized_client = Client()
+        cls.another = Client()
+        cls.another_2 = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.another.force_login(cls.user_2)
+        cls.another_2.force_login(cls.user_3)
 
     @classmethod
     def tearDownClass(cls):
@@ -87,25 +90,19 @@ class PostPagesTests(TestCase):
 
     def setUp(self):
         cache.clear()
-        self.guest_client = Client()
-        self.authorized_client = Client()
-        self.another = Client()
-        self.another_2 = Client()
-        self.authorized_client.force_login(self.user)
-        self.another.force_login(self.user_2)
-        self.another_2.force_login(self.user_3)
 
     def test_pages_show_correct_context(self):
         """Шаблон сформирован с правильным контекстом."""
         cases = [
-            [URL_OF_INDEX, 'page_obj'],
-            [URL_OF_POSTS_OF_GROUP, 'page_obj'],
-            [URL_OF_PROFILE, 'page_obj'],
-            [self.URL_OF_DETAIL_POST, 'post'],
+            [URL_OF_INDEX, self.guest_client, 'page_obj'],
+            [URL_OF_POSTS_OF_GROUP, self.guest_client, 'page_obj'],
+            [URL_OF_PROFILE, self.guest_client, 'page_obj'],
+            [self.URL_OF_DETAIL_POST, self.guest_client, 'post'],
+            [URL_OF_INDEX_FOLLOW, self.another, 'page_obj'],
         ]
-        for url, key in cases:
+        for url, client, key in cases:
             with self.subTest(url=url):
-                response = self.guest_client.get(url)
+                response = client.get(url)
                 obj = response.context.get(key)
                 if key == 'page_obj':
                     self.assertEqual(len(obj), 1)
@@ -115,7 +112,7 @@ class PostPagesTests(TestCase):
                 self.assertEqual(self.post.text, post.text)
                 self.assertEqual(self.post.author, post.author)
                 self.assertEqual(self.post.group, post.group)
-                self.assertEqual(self.post.pk, post.pk)
+                self.assertEqual(self.post.image, post.image)
 
     def test_group_pages_correct_context(self):
         """Шаблон group_pages сформирован с правильным контекстом."""
@@ -124,7 +121,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(group.title, self.group.title)
         self.assertEqual(group.slug, self.group.slug)
         self.assertEqual(group.pk, self.group.pk)
-        self.assertEqual(group.posts, self.group.posts)
+        self.assertEqual(group.description, self.group.description)
 
     def test_post_another_group(self):
         """Пост не попал в другую группу"""
@@ -135,38 +132,9 @@ class PostPagesTests(TestCase):
         response = self.guest_client.get(URL_OF_PROFILE)
         self.assertEqual(self.user, response.context['author'])
 
-    def test_context(self):
-        cases = [
-            [URL_OF_INDEX, 'page_obj'],
-            [URL_OF_POSTS_OF_GROUP, 'page_obj'],
-            [URL_OF_PROFILE, 'page_obj'],
-            [self.URL_OF_DETAIL_POST, 'post'],
-        ]
-        for url, context in cases:
-            with self.subTest(url=url):
-                post = self.guest_client.get(url).context[context]
-                if context == 'page_obj':
-                    self.assertEqual(len(post), 1)
-                    post = post[0]
-                self.assertEqual(post.text, self.post.text)
-                self.assertEqual(post.group, self.post.group)
-                self.assertEqual(post.author, self.post.author)
-                self.assertEqual(post.image, self.post.image)
-
-    def test_comment_form(self):
-        response = self.guest_client.get(self.URL_TO_CREATE_COMMENT)
-        self.assertEqual(response.status_code, 302)
-
-    def test_comment_in_page_of_post(self):
-        response = self.authorized_client.get(self.URL_OF_DETAIL_POST)
-        comment = response.context['comments'][0]
-        self.assertEqual(comment.text, self.comment.text)
-        self.assertEqual(comment.author, self.comment.author)
-        self.assertEqual(comment.post, self.comment.post)
-
     def test_caching_page_of_index(self):
         response = self.guest_client.get(URL_OF_INDEX)
-        Post.objects.filter(text='Тестовый текст').delete()
+        Post.objects.all().delete()
         response_2 = self.guest_client.get(URL_OF_INDEX)
         self.assertEqual(response.content, response_2.content)
         cache.clear()
@@ -193,15 +161,13 @@ class PostPagesTests(TestCase):
         )
 
     def test_new_post_after_following(self):
-        new_post = Post.objects.create(
-            author=self.user,
-            text='Тестовый text',
-            group=self.group,
-        )
-        response = self.another.get(URL_OF_INDEX_FOLLOW)
-        response_2 = self.another_2.get(URL_OF_INDEX_FOLLOW)
-        self.assertIn(new_post, response.context['page_obj'])
-        self.assertNotIn(new_post, response_2.context['page_obj'])
+        urls = [URL_OF_POSTS_OF_GROUP_2, URL_OF_INDEX_FOLLOW]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertNotIn(
+                    self.post,
+                    self.authorized_client.get(url).context['page_obj'],
+                )
 
 
 class PaginatorViewsTest(TestCase):
@@ -209,33 +175,39 @@ class PaginatorViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username=USERNAME)
+        cls.user_2 = User.objects.create_user(username=USERNAME_2)
         cls.group = Group.objects.create(
             title='Test group',
             slug=SLUG_OF_GROUP,
             description='Тестовое описание',
+        )
+        cls.follow = Follow.objects.create(
+            user=cls.user_2,
+            author=cls.user
         )
         Post.objects.bulk_create(Post(
             text=f'Тестовый пост {number}',
             author=cls.user,
             group=cls.group)
             for number in range(POSTS_PER_PAGE + 1))
-
-    def setUp(self):
-        self.guest_client = Client()
+        cls.guest_client = Client()
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user_2)
 
     def test_paginator(self):
-        self.urls = {
-            URL_OF_INDEX: POSTS_PER_PAGE,
-            URL_OF_POSTS_OF_GROUP: POSTS_PER_PAGE,
-            URL_OF_PROFILE: POSTS_PER_PAGE,
-            URL_OF_INDEX + "?page=2": 1,
-            URL_OF_POSTS_OF_GROUP + "?page=2": 1,
-            URL_OF_PROFILE + "?page=2": 1
-        }
+        cases = [
+            [URL_OF_INDEX, self.guest_client, POSTS_PER_PAGE],
+            [URL_OF_POSTS_OF_GROUP, self.guest_client, POSTS_PER_PAGE],
+            [URL_OF_PROFILE, self.guest_client, POSTS_PER_PAGE],
+            [URL_OF_INDEX + "?page=2", self.guest_client, 1],
+            [URL_OF_POSTS_OF_GROUP + "?page=2", self.guest_client, 1],
+            [URL_OF_PROFILE + "?page=2", self.guest_client, 1],
+            [URL_OF_INDEX_FOLLOW, self.authorized_client, POSTS_PER_PAGE]
+        ]
 
-        for url, post_count in self.urls.items():
+        for url, client, expected in cases:
             with self.subTest(url=url):
-                response = self.client.get(url)
+                response = client.get(url)
                 self.assertEqual(
-                    len(response.context.get('page_obj')), post_count
+                    len(response.context.get('page_obj')), expected
                 )
