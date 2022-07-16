@@ -45,7 +45,7 @@ class PostURLTests(TestCase):
             'posts:add_comment',
             args=[cls.post.pk]
         )
-        cls.LOGIN_TO_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
+        cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
         cls.guest = Client()
         cls.another = Client()
         cls.another_2 = Client()
