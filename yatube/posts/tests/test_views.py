@@ -185,7 +185,7 @@ class PaginatorViewsTest(TestCase):
             text=f'Тестовый пост {number}',
             author=cls.user,
             group=cls.group)
-                                 for number in range(POSTS_PER_PAGE + 1))
+            for number in range(POSTS_PER_PAGE + 1))
         cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user_2)
