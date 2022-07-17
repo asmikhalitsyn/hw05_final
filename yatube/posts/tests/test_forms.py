@@ -8,12 +8,15 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..models import Post, Group, User, Comment
+from ..urls import app_name
 
+IMAGE_PATH = 'posts'
 USERNAME = 'TEST'
 USERNAME_2 = 'test123'
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 SLUG_OF_GROUP = 'test_slug'
 SLUG_OF_GROUP_2 = 'test_slug2'
+SLUG_OF_GROUP_3 = 'test_slug3'
 URL_TO_CREATE_POST = reverse('posts:post_create')
 URL_OF_PROFILE = reverse('posts:profile', args=[USERNAME])
 URL_OF_POSTS_OF_GROUP = reverse('posts:group_list', args=[SLUG_OF_GROUP])
@@ -37,6 +40,13 @@ ANOTHER_GIF = (
     b'\x02\x00\x01\x00\x00\x02\x02\x0C'
     b'\x02\x02\x3B'
 )
+GIF_THREE = (
+    b'\x47\x49\x46\x38\x39\x61\x01\x00'
+    b'\x02\x03\x07\x00\x00\x21\xf9\x04'
+    b'\x02\x0a\x00\x01\x00\x2c\x00\x00'
+    b'\x02\x00\x01\x00\x01\x00\x00\x02'
+    b'\x02\x4c\x01\x00\x3b'
+)
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -45,13 +55,18 @@ class TaskCreateFormTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.uploaded = SimpleUploadedFile(
-            name='small.gif',
+            name='img.gif',
             content=SMALL_GIF,
             content_type='image/gif'
         )
         cls.uploaded_2 = SimpleUploadedFile(
             name='small_2.gif',
             content=ANOTHER_GIF,
+            content_type='image/gif'
+        )
+        cls.uploaded_3 = SimpleUploadedFile(
+            name='small_3.gif',
+            content=GIF_THREE,
             content_type='image/gif'
         )
         cls.user = User.objects.create_user(username=USERNAME)
@@ -66,9 +81,15 @@ class TaskCreateFormTests(TestCase):
             slug=SLUG_OF_GROUP_2,
             description='Тестовое описание2',
         )
+        cls.group_3 = Group.objects.create(
+            title='Test group3',
+            slug=SLUG_OF_GROUP_3,
+            description='Тестовое описание3',
+        )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост')
+            text='Тестовый пост',
+            group=cls.group)
         cls.comment = Comment.objects.create(
             post=cls.post,
             author=cls.user)
@@ -82,6 +103,7 @@ class TaskCreateFormTests(TestCase):
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
         cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_ADD_COMMENT}'
+        cls.LOGIN_URL_EDIT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_EDIT_POST}'
         cls.guest_client = Client()
         cls.another = Client()
         cls.authorized_client = Client()
@@ -110,8 +132,7 @@ class TaskCreateFormTests(TestCase):
         self.assertRedirects(response, URL_OF_PROFILE)
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.group.id, form_data['group'])
-        self.assertEqual(open(str(new_post.image.file), 'rb').read(),
-                         SMALL_GIF)
+        self.assertEqual(new_post.image.name, f'{IMAGE_PATH}/{form_data["image"].name}')
         self.assertEqual(new_post.author, self.user)
 
     def test_edit_post(self):
@@ -126,7 +147,7 @@ class TaskCreateFormTests(TestCase):
         post = response_edit.context['post']
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.group.id, form_data['group'])
-        self.assertEqual(open(str(post.image.file), 'rb').read(), ANOTHER_GIF)
+        self.assertEqual(post.image.name, f'{app_name}/{form_data["image"].name}')
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response_edit, self.URL_OF_DETAIL_POST)
 
@@ -182,15 +203,23 @@ class TaskCreateFormTests(TestCase):
                 )
 
     def test_anonymous_and_not_author_edit_post(self):
-        clients = [self.guest_client, self.another]
+        cases = [[self.guest_client, self.LOGIN_URL_EDIT],
+                 [self.another, self.URL_OF_DETAIL_POST]]
         post_before = self.post
-        for client in clients:
+        data = {'text': 'Измененный пост123',
+                'group': self.group_3.id,
+                'image': self.uploaded_3
+                }
+        for client, url_redirect in cases:
             with self.subTest(client=client):
-                client.post(
+                response = client.post(
                     self.URL_TO_EDIT_POST,
-                    data={'text': 'Измененый текст'},
+                    data=data,
                     follow=True
                 )
                 post_after = Post.objects.get(pk=post_before.pk)
                 self.assertEqual(post_after.text, post_before.text)
                 self.assertEqual(post_after.author, post_before.author)
+                self.assertEqual(post_after.group.pk, post_before.group.pk)
+                self.assertEqual(post_after.image.name, post_before.image.name)
+                self.assertRedirects(response, url_redirect)

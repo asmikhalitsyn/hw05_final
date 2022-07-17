@@ -11,7 +11,7 @@
     </p>
     {% for post in page_obj %}
       <article>
-        {% include 'posts/includes/post.html' %}
+        {% include 'posts/includes/post.html' with group=True %}
       </article>
     {% endfor %}
     {% include 'posts/includes/paginator.html' %}
