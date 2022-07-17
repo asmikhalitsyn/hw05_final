@@ -76,12 +76,12 @@ class TaskCreateFormTests(TestCase):
             'posts:post_detail',
             args=[cls.post.pk]
         )
-        cls.URL_TO_ADD_COMMENT = reverse(
+        cls.URL_ADD_COMMENT = reverse(
             'posts:add_comment',
             args=[cls.post.pk]
         )
         cls.URL_TO_EDIT_POST = reverse('posts:post_edit', args=[cls.post.pk])
-        cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_TO_ADD_COMMENT}'
+        cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_ADD_COMMENT}'
         cls.guest_client = Client()
         cls.another = Client()
         cls.authorized_client = Client()
@@ -110,7 +110,8 @@ class TaskCreateFormTests(TestCase):
         self.assertRedirects(response, URL_OF_PROFILE)
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.group.id, form_data['group'])
-        self.assertEqual(open(str(new_post.image.file), 'rb').read(), SMALL_GIF)
+        self.assertEqual(open(str(new_post.image.file), 'rb').read(),
+                         SMALL_GIF)
         self.assertEqual(new_post.author, self.user)
 
     def test_edit_post(self):
@@ -151,7 +152,7 @@ class TaskCreateFormTests(TestCase):
             'text': 'Комментарий123',
         }
         response = self.authorized_client.post(
-            self.URL_TO_ADD_COMMENT, data=form_data, follow=True
+            self.URL_ADD_COMMENT, data=form_data, follow=True
         )
         comment_all_with_new_comment = set(self.post.comments.all())
         comments_obj = comment_all_with_new_comment.difference(comment_all)
@@ -164,7 +165,7 @@ class TaskCreateFormTests(TestCase):
 
     def test_anonymous_comment_and_post(self):
         cases = [
-            [Comment, {'text': 'Новый комментарий'}, self.URL_TO_ADD_COMMENT],
+            [Comment, {'text': 'Новый комментарий'}, self.URL_ADD_COMMENT],
             [Post, {'text': 'Новый текст'}, URL_TO_CREATE_POST],
         ]
         for model, form_data, url in cases:
@@ -193,4 +194,3 @@ class TaskCreateFormTests(TestCase):
                 post_after = Post.objects.get(pk=post_before.pk)
                 self.assertEqual(post_after.text, post_before.text)
                 self.assertEqual(post_after.author, post_before.author)
-

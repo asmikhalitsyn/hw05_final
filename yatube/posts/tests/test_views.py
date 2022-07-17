@@ -124,7 +124,6 @@ class PostPagesTests(TestCase):
         self.assertEqual(group.pk, self.group.pk)
         self.assertEqual(group.description, self.group.description)
 
-
     def test_author_in_profile(self):
         response = self.guest_client.get(URL_OF_PROFILE)
         self.assertEqual(self.user, response.context['author'])
@@ -186,7 +185,7 @@ class PaginatorViewsTest(TestCase):
             text=f'Тестовый пост {number}',
             author=cls.user,
             group=cls.group)
-            for number in range(POSTS_PER_PAGE + 1))
+                                 for number in range(POSTS_PER_PAGE + 1))
         cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user_2)
