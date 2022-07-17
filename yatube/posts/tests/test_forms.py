@@ -132,7 +132,8 @@ class TaskCreateFormTests(TestCase):
         self.assertRedirects(response, URL_OF_PROFILE)
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.group.id, form_data['group'])
-        self.assertEqual(new_post.image.name, f'{IMAGE_PATH}/{form_data["image"].name}')
+        self.assertEqual(new_post.image.name,
+                         f'{IMAGE_PATH}/{form_data["image"].name}')
         self.assertEqual(new_post.author, self.user)
 
     def test_edit_post(self):
@@ -147,7 +148,8 @@ class TaskCreateFormTests(TestCase):
         post = response_edit.context['post']
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.group.id, form_data['group'])
-        self.assertEqual(post.image.name, f'{app_name}/{form_data["image"].name}')
+        self.assertEqual(post.image.name, 
+                         f'{IMAGE_PATH}/{form_data["image"].name}')
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response_edit, self.URL_OF_DETAIL_POST)
 
