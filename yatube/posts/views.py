@@ -24,6 +24,7 @@ def index(request):
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     return render(request, 'posts/group_list.html', {
+        'slug': slug,
         'group': group,
         'page_obj': page_paginator(group.posts.all(), POSTS_PER_PAGE, request)
     })
@@ -31,7 +32,7 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    following = (request.user.is_authenticated
+    following = ((request.user.is_authenticated and request.user != author)
                  and Follow.objects.filter(author=author).
                  filter(user=request.user).exists())
     return render(request, 'posts/profile.html', {

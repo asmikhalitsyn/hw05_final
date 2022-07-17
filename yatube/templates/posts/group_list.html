@@ -9,11 +9,11 @@
     <p>
       {{ group.description|linebreaks }}
     </p>
-    <article>
-      {% for post in page_obj %}
-        {% include 'posts/includes/tape.html' %}
-      {% endfor %}
-    </article>
+    {% for post in page_obj %}
+      <article>
+        {% include 'posts/includes/post.html' %}
+      </article>
+    {% endfor %}
     {% include 'posts/includes/paginator.html' %}
   </div>
 {% endblock %}

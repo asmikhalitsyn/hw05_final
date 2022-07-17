@@ -41,9 +41,7 @@
       <p>
        {{ post.text|linebreaks }}
       </p>
-      {% if user.is_authenticated %}
-        {% include 'posts/includes/comments.html' %}
-      {% endif %}
+      {% include 'posts/includes/comments.html' %}
     </article>
   </div>
 {% endblock %}

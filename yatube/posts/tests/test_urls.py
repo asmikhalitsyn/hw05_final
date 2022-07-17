@@ -46,6 +46,7 @@ class PostURLTests(TestCase):
             args=[cls.post.pk]
         )
         cls.LOGIN_ADD_COMMENT = f'{LOGIN_URL}{URL_NEXT}{cls.URL_ADD_COMMENT}'
+        cls.LOGIN_TO_FOLLOW = f'{LOGIN_URL}{URL_NEXT}{URL_TO_FOLLOW}'
         cls.guest = Client()
         cls.another = Client()
         cls.another_2 = Client()
@@ -81,7 +82,14 @@ class PostURLTests(TestCase):
             [self.URL_TO_EDIT_POST, self.another_2, 302],
             [self.URL_ADD_COMMENT, self.another_2, 302],
             [URL_OF_FOLLOW_INDEX, self.another, 200],
+            [URL_OF_FOLLOW_INDEX, self.guest, 302],
             [URL_TO_FOLLOW, self.another_2, 302],
+            [URL_TO_FOLLOW, self.another, 302],
+            [URL_TO_FOLLOW, self.guest, 302],
+            [URL_TO_UNFOLLOW, self.another_2, 302],
+            [URL_TO_UNFOLLOW, self.another, 404],
+            [URL_TO_UNFOLLOW, self.guest, 302],
+
         ]
         for url, client, status in cases:
             with self.subTest(case=[url, client, status]):
@@ -95,10 +103,12 @@ class PostURLTests(TestCase):
             [self.URL_ADD_COMMENT, self.guest, self.LOGIN_ADD_COMMENT],
             [self.URL_ADD_COMMENT, self.another, self.URL_OF_DETAIL_POST],
             [URL_TO_FOLLOW, self.another_2, URL_OF_PROFILE],
+            [URL_TO_FOLLOW, self.another, URL_OF_PROFILE],
+            [URL_TO_FOLLOW, self.guest, self.LOGIN_TO_FOLLOW],
             [URL_TO_UNFOLLOW, self.another_2, URL_OF_PROFILE]
         ]
         for url, client, url_redirect in cases:
-            with self.subTest(url_redirect=url_redirect):
+            with self.subTest(url_redirect=[url, client, url_redirect]):
                 self.assertRedirects(
                     client.get(url, follow=True), url_redirect
                 )

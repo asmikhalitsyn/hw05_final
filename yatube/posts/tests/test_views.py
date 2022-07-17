@@ -113,6 +113,7 @@ class PostPagesTests(TestCase):
                 self.assertEqual(self.post.author, post.author)
                 self.assertEqual(self.post.group, post.group)
                 self.assertEqual(self.post.image, post.image)
+                self.assertEqual(self.post.pk, post.pk)
 
     def test_group_pages_correct_context(self):
         """Шаблон group_pages сформирован с правильным контекстом."""
@@ -123,10 +124,6 @@ class PostPagesTests(TestCase):
         self.assertEqual(group.pk, self.group.pk)
         self.assertEqual(group.description, self.group.description)
 
-    def test_post_another_group(self):
-        """Пост не попал в другую группу"""
-        response = self.authorized_client.get(URL_OF_POSTS_OF_GROUP_2)
-        self.assertNotIn(self.post, response.context['page_obj'])
 
     def test_author_in_profile(self):
         response = self.guest_client.get(URL_OF_PROFILE)
@@ -160,7 +157,7 @@ class PostPagesTests(TestCase):
             ).exists()
         )
 
-    def test_new_post_after_following(self):
+    def test_post_in_correct_group_and_follow_index(self):
         urls = [URL_OF_POSTS_OF_GROUP_2, URL_OF_INDEX_FOLLOW]
         for url in urls:
             with self.subTest(url=url):

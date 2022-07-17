@@ -9,11 +9,11 @@
     {% if user.is_authenticated %}
       {% include 'posts/includes/switcher.html' %}
     {% endif %}
-    <article>
-      {% for post in page_obj %}
-        {% include 'posts/includes/tape.html' %}
-      {% endfor %}
-    </article>
+    {% for post in page_obj %}
+      <article>
+        {% include 'posts/includes/post.html' with index=True %}
+      </article>
+    {% endfor %}
     {% include 'posts/includes/paginator.html' %}
   </div>
 {% endblock %}
