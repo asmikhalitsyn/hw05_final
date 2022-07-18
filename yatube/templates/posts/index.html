@@ -8,9 +8,8 @@
     <h1>Последние обновления на сайте</h1>
     {% include 'posts/includes/switcher.html' with index=True %}
     {% for post in page_obj %}
-      <article>
-        {% include 'posts/includes/post.html' %}
-      </article>
+      {% include 'posts/includes/post.html' %}
+      {% if not forloop.last %}<hr>{% endif %}
     {% endfor %}
     {% include 'posts/includes/paginator.html' %}
   </div>

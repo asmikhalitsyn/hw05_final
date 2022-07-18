@@ -9,7 +9,6 @@ from django.urls import reverse
 
 from ..models import Post, Group, User, Comment
 
-IMAGE_PATH = 'posts'
 USERNAME = 'TEST'
 USERNAME_2 = 'test123'
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -133,7 +132,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(new_post.group.id, form_data['group'])
         self.assertEqual(
             new_post.image.name,
-            f'{IMAGE_PATH}/{form_data["image"].name}'
+            f'{self.post.image.field.upload_to}{form_data["image"].name}'
         )
         self.assertEqual(new_post.author, self.user)
 
@@ -151,7 +150,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(
             post.image.name,
-            f'{IMAGE_PATH}/{form_data["image"].name}'
+            f'{self.post.image.field.upload_to}{form_data["image"].name}'
         )
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response_edit, self.URL_OF_DETAIL_POST)
@@ -226,5 +225,5 @@ class TaskCreateFormTests(TestCase):
                 self.assertEqual(post_after.text, post_before.text)
                 self.assertEqual(post_after.author, post_before.author)
                 self.assertEqual(post_after.group.pk, post_before.group.pk)
-                self.assertEqual(post_after.image.name, post_before.image.name)
+                self.assertEqual(post_after.image, post_before.image)
                 self.assertRedirects(response, url_redirect)
