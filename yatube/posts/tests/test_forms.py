@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from ..models import Post, Group, User, Comment
 
+IMAGE_PATH = Post.image.field.upload_to
 USERNAME = 'TEST'
 USERNAME_2 = 'test123'
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -132,7 +133,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(new_post.group.id, form_data['group'])
         self.assertEqual(
             new_post.image.name,
-            f'{Post.image.field.upload_to}{form_data["image"].name}'
+            f'{IMAGE_PATH}{form_data["image"].name}'
         )
         self.assertEqual(new_post.author, self.user)
 
@@ -150,7 +151,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(
             post.image.name,
-            f'{Post.image.field.upload_to}{form_data["image"].name}'
+            f'{IMAGE_PATH}{form_data["image"].name}'
         )
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response_edit, self.URL_OF_DETAIL_POST)
