@@ -14,7 +14,7 @@
   <p>
     <a href="{% url 'posts:post_detail' post.pk %}"> Детали поста </a>
   </p>
-  {% if post.group and not show_group_of_posts  %}
+  {% if post.group and not hide_group_of_posts  %}
     Сообщество:
     <a href="{% url 'posts:group_list' post.group.slug %}"> {{ post.group }}</a>
   {% endif %}
