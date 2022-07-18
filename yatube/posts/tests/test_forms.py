@@ -132,7 +132,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(new_post.group.id, form_data['group'])
         self.assertEqual(
             new_post.image.name,
-            f'{self.post.image.field.upload_to}{form_data["image"].name}'
+            f'{Post.image.field.upload_to}{form_data["image"].name}'
         )
         self.assertEqual(new_post.author, self.user)
 
@@ -150,7 +150,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(
             post.image.name,
-            f'{self.post.image.field.upload_to}{form_data["image"].name}'
+            f'{Post.image.field.upload_to}{form_data["image"].name}'
         )
         self.assertEqual(post.author, self.post.author)
         self.assertRedirects(response_edit, self.URL_OF_DETAIL_POST)
